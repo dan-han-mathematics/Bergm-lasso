@@ -52,8 +52,7 @@
   #' Caimo, A. and Friel, N. (2014), "Bergm: Bayesian Exponential Random Graphs in R,"
   #' Journal of Statistical Software, 61(2), 1-25. \url{https://www.jstatsoft.org/article/view/v061i02}
   
-#' Dan Han, Vicki Modisette, Melinda Forthofer, Rajib Paul, (2024), "Hierarchical Bayesian Adaptive Lasso Methods on
-#  Exponential Random Graph Models", Applied Network Science.
+  
   
   
   
@@ -86,6 +85,7 @@
                          r0=1,
                          delta0=0.5)
   {
+  
     net <-data
     
     y <- ergm.getnetwork(formula)
@@ -190,7 +190,7 @@
     message(" > Bergm Lasso Full Bayes MCMC start")
     clock.start <- Sys.time()
     for (j in 1:tot.iters) {
-      # cat("iteration",j,"\n")
+      cat("iteration",j,"\n")
       for (h in 1:nchains) {
         # cat("chain",h,"\n")
         
@@ -255,6 +255,14 @@
         lambda2<-rgamma(dim,shape=lambda2_shape,rate=lambda2_rate)
         lambda2Samples[j,,h] <-lambda2
         
+        # if (j %% 10 == 0) {
+        #   low <- j - 9
+        #   high <- j
+        #   delta0 <-  r0/ (colMeans(lambda2Samples[low:high, ,h ]))
+        # }
+
+      }
+      
       
       if (j > burn.in) Theta[j - burn.in, , ] <- theta
     }
@@ -268,9 +276,62 @@
     names(ess) <- param_names(model)
     
     specs=param_names(model)
+    # Theta1 = Theta[ , ,1]
+    
+    # 
+    # sink("Bergm Lasso output.txt")
+    # cat("Posterior Density Estimate for Model: ") 
+    # formula
+    # 
+    # Theta1 <- as.mcmc(Theta1)
+    # quantiles <- c(0.025, 0.25, 0.5, 0.75, 0.975)
+    # 
+    # statnames <- c("Mean", "SD", "Naive SE", "Time-series SE")
+    # varstats <- matrix(nrow = nvar(Theta1), ncol = length(statnames), 
+    #                    dimnames = list(varnames(Theta1), statnames))
+    # 
+    # Thetavar <- apply(Theta1, 2, var)
+    # Thetatsvar <- apply(Theta1, 2, function(x) coda::spectrum0.ar(x)$spec)
+    # varquant <- t(apply(Theta1, 2, quantile, quantiles))
+    # 
+    # varstats[, 1] <- apply(Theta1, 2, mean)
+    # varstats[, 2] <- sqrt(Thetavar)
+    # varstats[, 3] <- sqrt(Thetavar / niter(Theta1))
+    # varstats[, 4] <- sqrt(Thetatsvar / niter(Theta1))
+    # 
+    # table1 <- drop(varstats)
+    # table2 <- drop(varquant)
+    # 
+    # rNames <- paste("theta", seq(1, dim), " (", specs[seq(1, dim)], ")", sep = "")
+    # 
+    # rownames(table1) <- rownames(table2) <- rNames
+    # print(table1); cat("\n"); print(table2)
+    # cat("\n", "Acceptance rate:", AR, "\n", "\n", "\n")
+    # 
+    # 
+    # sink() 
+    # 
+  
     
     out = list(formula = formula, specs = specs,
                dim = dim, Theta = FF, AR = AR,ess=ess, runtime=runtime)
     return(out)
     
   }
+  
+  # #setwd("~/Thesis/Codes/07122022 kapferer")
+  # data("kapferer" )
+  # net <-kapferer
+  # 
+  # 
+  # Bergm.Lasso = BergmLasso(formula = net ~ edges + triangle , 
+  #                        data = net,
+  #                        sigma_prior_diag_value=100, 
+  #                        lambda=5,
+  #                        mean_prior=0 , 
+  #                        invTau2=1/10 , 
+  #                        main.iters=500,
+  #                        burn.in =100, 
+  #                        V.proposal=0.0025,
+  #                        gamma=0.5, 
+  #                        nchains=4 )
